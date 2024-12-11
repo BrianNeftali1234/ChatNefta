@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat en Tiempo Real</title>
+</head>
+<body>
+<h1>Chat en Tiempo Real</h1>
+<div id="chat-global">
+  <h2>Chat Global</h2>
+  <div id="mensajes-global"></div>
+  <input type="text" id="mensaje-global" placeholder="Escribe un mensaje">
+  <button onclick="enviarMensajeGlobal()">Enviar</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script>
+  const socket = new SockJS('/chat');
+  const stompClient = Stomp.over(socket);
+
+  stompClient.connect({}, () => {
+      stompClient.subscribe('/topic/global', (mensaje) => {
+          const contenido = JSON.parse(mensaje.body).contenido;
+          document.getElementById('mensajes-global').innerHTML += `<p>${contenido}</p>`;
+      });
+  });
+
+  function enviarMensajeGlobal() {
+      const mensaje = {
+          contenido: document.getElementById('mensaje-global').value,
+          canal: null
+      };
+      stompClient.send("/app/chat.global", {}, JSON.stringify(mensaje));
+  }
+</script>
+</body>
+</html>
